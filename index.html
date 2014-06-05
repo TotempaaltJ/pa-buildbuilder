@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>PA Build Builder</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+  </head>
+  <body>
+    <h1>PA Build Builder</h1>
+    <div id="form-add">
+      <input type="text" id="add-name" placeholder="Name">
+      <input type="text" id="add-cost" placeholder="Cost">
+      <input type="text" id="add-metal" placeholder="Metal">
+      <input type="text" id="add-energy" placeholder="Energy">
+      <input type="text" id="add-column" placeholder="Column" value="2">
+      <button id="add">Add</button>
+    </div>
+
+    <div id="build">
+      <div id="time">
+        <template id="build-second">
+          <div class="second" data-n=""></div>
+        </template>
+      </div>
+
+      <div id="columns">
+        <template id="column">
+          <div class="column" data-n="">
+            <h1></h1>
+
+            <div class="blocks"></div>
+          </div>
+        </template>
+
+        <template id="block">
+          <div class="block">
+          </div>
+        </template>
+        <template id="block-unit">
+          <div class="block-unit">
+            <div class="name"></div>
+            <div class="resources">
+              <img src="img/icon-status-metal.png">
+              <span class="metal"></span>
+              /
+              <img src="img/icon-status-energy.png">
+              <span class="energy"></span>
+            </div>
+          </div>
+        </template>
+
+      </div>
+    </div>
+  </body>
+</html>
