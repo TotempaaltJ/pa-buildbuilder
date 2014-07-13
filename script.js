@@ -1,3 +1,28 @@
+// AJAX promising function thanks to http://www.html5rocks.com/en/tutorials/es6/promises/
+function get(url) {
+  return new Promise(function(resolve, reject) {
+    var req = new XMLHttpRequest();
+    req.open('GET', url);
+
+    req.onload = function() {
+      if (req.status == 200) {
+        resolve(req.response);
+      }
+      else {
+        reject(Error(req.statusText));
+      }
+    };
+
+    req.onerror = function() {
+      reject(Error("Network Error"));
+    };
+
+    req.send();
+  });
+}
+
+
+
 var TOTAL_SECONDS = 0;
 var TOTAL_COLUMNS = 0;
 
@@ -66,6 +91,66 @@ function add_unit(column, t, name, with_bp, cost, bp, metal, energy) {
   if((t + duration) > TOTAL_SECONDS)
     add_seconds((t + duration) - TOTAL_SECONDS + 1);
 }
+function unit_select(event) {
+  var select = event.target,
+      option = select.options[select.selectedIndex],
+
+      column = get_column(2),
+      name = option.innerText,
+      cost = parseInt(option.getAttribute('data-cost'), 10) || 0,
+      pmetal = parseInt(option.getAttribute('data-pmetal'), 10) || 0,
+      penergy = parseInt(option.getAttribute('data-penergy'), 10) || 0,
+      umetal = parseInt(option.getAttribute('data-umetal'), 10) || 0,
+      uenergy = parseInt(option.getAttribute('data-uenergy'), 10) || 0;
+  console.log(cost, pmetal, penergy, umetal, uenergy);
+
+  var blocks = column.querySelectorAll('.block'),
+      last = blocks[blocks.length - 1];
+
+  if(last != undefined)
+    t = ((parseInt(last.style.height, 10) + parseInt(last.style.top, 10)-1)/5);
+  else
+    t = 0
+
+  add_unit(2, t, name, 30, cost, 0, (pmetal - umetal) || 0, (penergy - uenergy) || 0);
+}
+
+//JSON reader
+function read_unit_json(response){
+    var categories = JSON.parse(response),
+        cats = document.querySelector('#categories'),
+        cat_tpl = document.querySelector('#category'),
+        unit_tpl = document.querySelector('#unit');
+
+    for(var category in categories) {
+      var clone = document.importNode(cat_tpl.content, true),
+          units = categories[category];
+      clone.querySelector('h2').innerText = category;
+      clone.querySelector('select').addEventListener('change', unit_select);
+      console.log(category);
+
+      for(var i in units) {
+        var unit_clone = document.importNode(unit_tpl.content, true),
+            unit = units[i],
+            a = unit_clone.querySelector('option');
+
+        console.log(unit['display_name']);
+        a.innerText = unit['display_name'];
+        a.setAttribute('id', 'addunit-' + unit['display_name']);
+        a.setAttribute('data-cost', unit['build_metal_cost']);
+        if('production' in unit) {
+          a.setAttribute('data-pmetal', unit['production']['metal']);
+          a.setAttribute('data-penergy', unit['production']['energy']);
+        }
+        if('construction_demand' in unit) {
+          a.setAttribute('data-umetal', unit['construction_demand']['metal']);
+          a.setAttribute('data-uenergy', unit['construction_demand']['energy']);
+        }
+        clone.querySelector('.category select').appendChild(unit_clone);
+      }
+      cats.appendChild(clone);
+    }
+}
 
 document.addEventListener('DOMContentLoaded',function(){
   add_seconds(1);
@@ -80,8 +165,9 @@ document.addEventListener('DOMContentLoaded',function(){
       unit = populate_unit('Commander', -30, -1500);
   column.querySelector('h1').appendChild(unit);
 
-  add_unit(2, 0, 'extractor', 30, 150, 0, 7, 0);
-  add_unit(2, 5, 'extractor', 30, 150, 0, 7, 0);
+  get('units.json').then(read_unit_json, function(error) {
+    console.error("Failed!", error);
+  });
 
   document.querySelector('#add').addEventListener('click', function(  ){
     var form = document.querySelector('#form-add'),
@@ -93,8 +179,12 @@ document.addEventListener('DOMContentLoaded',function(){
         column = get_column(n_column);
 
     var blocks = column.querySelectorAll('.block'),
-        last = blocks[blocks.length - 1],
-        t = ((parseInt(last.style.height, 10) + parseInt(last.style.top, 10)-1)/5);
+        last = blocks[blocks.length - 1];
+
+    if(last != undefined)
+      t = ((parseInt(last.style.height, 10) + parseInt(last.style.top, 10)-1)/5);
+    else
+      t = 0
 
     add_unit(n_column, t, name, 30, cost, 0, metal, energy);
   });

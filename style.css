@@ -5,6 +5,14 @@ html, body {
 * {
   box-sizing: border-box; }
 
+#categories .category {
+  float: left;
+  width: 200px; }
+  #categories .category h2 {
+    font-weight: bold; }
+  #categories .category a {
+    display: block; }
+
 #build {
   margin-top: 20px;
   padding-left: 30px;
